@@ -12,5 +12,6 @@
 struct Point {
     int id;
     int x, y;
-    string texture; // '.' par défaut, 'o', '#', etc.
+    std::string texture; // '.' par défaut, 'o', '#', etc.
+    std::string ancienneTexture;
 };

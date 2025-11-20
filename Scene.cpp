@@ -51,16 +51,18 @@ void Scene::afficherListe() const
 {
     cout << "\nPoints:\n";
     for (auto& p : points_) {
+        auto text = (p->texture == ".") ? "" : p->texture;
         cout << "ID " << p->id << " : (" << p->x << "," << p->y
-             << "), tex=" << p->texture << "\n";
+             << "), textures=" <<"'" <<text <<"'" <<"\n";
     }
-
-    cout << "\nNuages:\n";
-    for (size_t i = 0; i < nuages_.size(); i++) {
-        cout << "Nuage " << i << ", tex=" << nuages_[i].getTexture() << " : ";
-        for (auto& p : nuages_[i].getPoints())
-            cout << p->id << " ";
-        cout << "\n";
+    if (nuages_.size()!=0) {
+        cout << "\nNuages:\n";
+        for (size_t i = 0; i < nuages_.size(); i++) {
+            cout << "Nuage " << i << ", tex=" << nuages_[i].getTexture() << " : ";
+            for (auto& p : nuages_[i].getPoints())
+                cout << p->id << " ";
+            cout << "\n";
+        }
     }
 }
 
@@ -81,11 +83,13 @@ void Scene::fusionnerPoints(const vector<int>& ids)
     for (int id : ids) {
         auto p = trouverPoint(id);
         if (p) {
-            if (p->texture!= ".") {
+            if (p->texture != ".") {
                 p->texture += texture;
+                p->ancienneTexture = texture.substr(1);
             }
             else {
                 p->texture = texture;
+                p->ancienneTexture = "." ;
             }
 
             n.ajouterPoint(p);
@@ -107,10 +111,12 @@ void Scene::creerLigne(vector<vector<char> > &grille) const{
 
     for (int j = 0; j < surfaces_.size() ; j++) {
         auto points = surfaces_[j];
-        for (int i = 0; i<points.size() - 1; i++) {
+        for (int i = 0; i <points.size() - 1; i++) {
             tracerLigne(grille, points[i]->x, points[i]->y, points[i+1]->x, points[i+1]->y);
         }
+        tracerLigne(grille, points[points.size() - 1]->x, points[points.size() - 1]->y, points[0]->x, points[0]->y);
     }
+
 }
 
 void Scene::supprimerPoint(int id)
@@ -122,6 +128,12 @@ void Scene::supprimerPoint(int id)
 
     for (auto& n : nuages_)
         n.enleverPoint(id);
+}
+void Scene::undoTexture(std::shared_ptr<Point>& p) {
+    p->texture = p->ancienneTexture;
+}
+void Scene::ecraserTexture(std::shared_ptr<Point>& p) {
+    p->texture = ".";
 }
 
 void Scene::creerSurface(const SurfaceStrategy& strat)

@@ -32,9 +32,12 @@ public:
     void creerLigne(std::vector<std::vector<char> > &grille) const;
 
     const std::vector<std::shared_ptr<Point>>& getPoints() const;
-    const std::vector<Nuage>& getNuages() const;
-    const std::vector<std::vector<std::shared_ptr<Point>>>& getSurfaces() const;
 
+    const std::vector<Nuage>& getNuages() const;
+
+    const std::vector<std::vector<std::shared_ptr<Point>>>& getSurfaces() const;
+    void undoTexture(std::shared_ptr<Point>& p)  ;
+    void ecraserTexture(std::shared_ptr<Point>& p) ;
 private:
     std::vector<std::shared_ptr<Point>> points_;
     std::vector<Nuage> nuages_;

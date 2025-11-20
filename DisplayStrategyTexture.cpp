@@ -18,7 +18,18 @@ public:
             if (p->x >= 0 && p->x < LARGEUR &&
                 p->y >= 0 && p->y < HAUTEUR)
             {
-                grille[p->y][p->x] = p->texture;
+                const int LARGEUR = 30;
+                string tex = p->texture;
+                int L = tex.size();
+
+                for (int dx = 0; dx < L; dx++) {
+                    int xx = p->x + dx;
+
+                    if (xx >= LARGEUR)
+                        break;  // on dépasse, on arrête proprement
+
+                    grille[p->y][xx] = tex[dx];
+                }
             }
         }
 
