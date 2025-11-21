@@ -9,7 +9,7 @@ using namespace std;
 class SurfaceStrategyC1 : public SurfaceStrategy {
 public:
     vector<vector<shared_ptr<Point>>> creerSurfaces(
-        const vector<Nuage>& nuages) const override
+        const vector<Nuage>& nuages)  const override
     {
         vector<vector<shared_ptr<Point>>> surfaces;
 

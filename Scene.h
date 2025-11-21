@@ -21,7 +21,7 @@ class Scene {
 public:
     Scene(const std::string& input);
 
-    void afficherListe() const;
+    void afficherListe() ;
     void afficherOrthese(const DisplayStrategy& strat) const;
 
     void fusionnerPoints(const std::vector<int>& ids);
@@ -38,6 +38,11 @@ public:
     const std::vector<std::vector<std::shared_ptr<Point>>>& getSurfaces() const;
     void undoTexture(std::shared_ptr<Point>& p)  ;
     void ecraserTexture(std::shared_ptr<Point>& p) ;
+
+    void enleverPointDansBonNuage(
+                              const std::string& textureRecherchee,
+                              int pointId) ;
+
 private:
     std::vector<std::shared_ptr<Point>> points_;
     std::vector<Nuage> nuages_;

@@ -25,7 +25,10 @@ string Nuage::getTexture() const {
     return texture_;
 }
 
-const vector<shared_ptr<Point>>& Nuage::getPoints() const {
+vector<shared_ptr<Point>>  Nuage::getPoints()  {
     return points_;
 }
 
+vector<shared_ptr<Point>> const Nuage::getPoints() const {
+    return points_;
+}

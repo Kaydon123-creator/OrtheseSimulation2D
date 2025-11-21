@@ -47,7 +47,7 @@ shared_ptr<Point> Scene::trouverPoint(int id)
     return nullptr;
 }
 
-void Scene::afficherListe() const
+void Scene::afficherListe()
 {
     cout << "\nPoints:\n";
     for (auto& p : points_) {
@@ -55,7 +55,7 @@ void Scene::afficherListe() const
         cout << "ID " << p->id << " : (" << p->x << "," << p->y
              << "), textures=" <<"'" <<text <<"'" <<"\n";
     }
-    if (nuages_.size()!=0) {
+    if (!(nuages_.empty())) {
         cout << "\nNuages:\n";
         for (size_t i = 0; i < nuages_.size(); i++) {
             cout << "Nuage " << i << ", tex=" << nuages_[i].getTexture() << " : ";
@@ -75,7 +75,7 @@ void Scene::fusionnerPoints(const vector<int>& ids)
 {
     if (ids.empty()) return;
 
-    string texture = (nuages_.size() == 0 ? "o" :
+    string texture = (nuages_.empty() ? "o" :
                    (nuages_.size() == 1 ? "#" : "$"));
 
     Nuage n(texture);
@@ -130,11 +130,37 @@ void Scene::supprimerPoint(int id)
         n.enleverPoint(id);
 }
 void Scene::undoTexture(std::shared_ptr<Point>& p) {
+    enleverPointDansBonNuage(string(1,p->texture[0]), p->id) ;
     p->texture = p->ancienneTexture;
+
 }
 void Scene::ecraserTexture(std::shared_ptr<Point>& p) {
+    for (auto
+        & c : p->texture) {
+        enleverPointDansBonNuage(string(1,c), p->id) ;
+    }
+
     p->texture = ".";
+
 }
+
+void Scene::enleverPointDansBonNuage(
+                              const std::string& textureRecherchee,
+                              int pointId)
+{
+    for (Nuage& nuage : nuages_) {
+        if (nuage.getTexture() == textureRecherchee) {
+            for (auto it = nuage.getPoints().begin(); it != nuage.getPoints().end(); it++) {
+                if ((*(it))->id == pointId) {
+                    nuage.getPoints().erase(it);
+                    return;
+                }
+            }
+            return;
+        }
+    }
+}
+
 
 void Scene::creerSurface(const SurfaceStrategy& strat)
 {

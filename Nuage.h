@@ -13,13 +13,14 @@
 
 class Nuage {
 public:
-    explicit Nuage(std::string texture);
+    Nuage(std::string texture);
 
     void ajouterPoint(std::shared_ptr<Point> p);
     void enleverPoint(int pointId);
 
     std::string getTexture() const;
-    const std::vector<std::shared_ptr<Point>>& getPoints() const;
+    std::vector<std::shared_ptr<Point>>  getPoints() ;
+    std::vector<std::shared_ptr<Point>>  const getPoints() const ;
 
 private:
     std::string texture_;
