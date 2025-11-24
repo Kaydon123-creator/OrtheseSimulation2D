@@ -5,8 +5,8 @@
 #include <vector>
 #include "Scene.h"
 // #include "DisplayStrategy.h"
-#include "DisplayStrategyID.cpp"
-#include "DisplayStrategyTexture.cpp"
+#include "DisplayID.cpp"
+#include "DisplayTexture.cpp"
 // #include "SurfaceStrategy.h"
 #include "SurfaceStrategyC1.cpp"
 #include "SurfaceStrategyC2.cpp"
@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
     // Voici des fonctions utiles pour réaliser le TP. 
     // TODO: Il faudrait les placer dans des classes appropriées.
     Scene scene(args);
-    DisplayStrategyTexture o1;
-    DisplayStrategyID o2;
+    DisplayTexture o1;
+    DisplayID o2;
     SurfaceStrategyC1 c1;
     SurfaceStrategyC2 c2;
     
@@ -57,8 +57,15 @@ int main(int argc, char* argv[]) {
         else if (cmd == "a") scene.afficherListe();
         else if (cmd == "o1") scene.afficherOrthese(o1);
         else if (cmd == "o2") scene.afficherOrthese(o2);
-        else if (cmd == "c1") scene.creerSurface(c1);
-        else if (cmd == "c2") scene.creerSurface(c2);
+        else if (cmd == "c1") {
+            scene.setStrategieCreationSurface(std::make_unique<SurfaceStrategyC1>());
+            scene.creerSurface();
+        }
+        else if (cmd == "c2") {
+            scene.setStrategieCreationSurface(std::make_unique<SurfaceStrategyC2>());
+            scene.creerSurface();
+        }
+
         else if (cmd == "d") {
             cout << "ID : "; int id; cin >> id;
             cout << "x y : "; int x,y; cin >> x >> y;

@@ -16,7 +16,7 @@ void Nuage::enleverPoint(int pointId) {
     points_.erase(
         remove_if(points_.begin(), points_.end(),
                   [pointId](const shared_ptr<Point>& p) {
-                      return p->id == pointId;
+                      return p->getId() == pointId;
                   }),
         points_.end());
 }

@@ -16,7 +16,7 @@ public:
         for (const auto& n : nuages) {
             auto pts = n.getPoints();
             sort(pts.begin(), pts.end(),
-                [](auto& a, auto& b){ return a->id < b->id; });
+                [](auto& a, auto& b){ return a->getId() < b->getId(); });
 
             surfaces.push_back(pts);
         }

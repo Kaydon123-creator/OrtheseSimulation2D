@@ -15,9 +15,9 @@ add_executable(test2400
         Point.cpp
         Nuage.h
         Nuage.cpp
-        DisplayStrategy.h
-        DisplayStrategyTexture.cpp
-        DisplayStrategyID.cpp
+        Display.h
+        DisplayTexture.cpp
+        DisplayID.cpp
         SurfaceStrategy.h
         SurfaceStrategyC1.cpp
         SurfaceStrategyC2.cpp

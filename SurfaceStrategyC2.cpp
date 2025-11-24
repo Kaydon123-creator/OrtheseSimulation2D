@@ -8,8 +8,8 @@
 using namespace std;
 
 static double dist(shared_ptr<Point> a, shared_ptr<Point> b) {
-    double dx = a->x - b->x;
-    double dy = a->y - b->y;
+    double dx = a->getX() - b->getX();
+    double dy = a->getY() - b->getY();
     return sqrt(dx*dx + dy*dy);
 }
 

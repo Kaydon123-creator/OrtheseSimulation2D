@@ -2,7 +2,7 @@
 // Created by Kaydon Mohamed on 2025-11-19.
 //
 #include "Scene.h"
-#include "DisplayStrategy.h"
+#include "Display.h"
 #include "SurfaceStrategy.h"
 #include <sstream>
 #include <iostream>
@@ -29,12 +29,7 @@ void Scene::creerPoint(const string& line)
             istringstream ps(token);
             int x, y;
             if (ps >> x >> y) {
-                auto p = make_shared<Point>();
-                p->id = id++;
-                p->x = x;
-                p->y = y;
-                p->texture = '.';
-                points_.push_back(p);
+               points_.push_back(make_shared<PointConcret>(id++, x, y));
             }
         }
     }
@@ -43,7 +38,7 @@ void Scene::creerPoint(const string& line)
 shared_ptr<Point> Scene::trouverPoint(int id)
 {
     for (auto& p : points_)
-        if (p->id == id) return p;
+        if (p->getId() == id) return p;
     return nullptr;
 }
 
@@ -51,22 +46,32 @@ void Scene::afficherListe()
 {
     cout << "\nPoints:\n";
     for (auto& p : points_) {
-        auto text = (p->texture == ".") ? "" : p->texture;
-        cout << "ID " << p->id << " : (" << p->x << "," << p->y
-             << "), textures=" <<"'" <<text <<"'" <<"\n";
+
+        cout << "ID " << p->getId() << " : (" << p->getX() << "," << p->getY()
+             << "), textures=" <<"'" <<p->getTexture() <<"'" <<"\n";
     }
     if (!(nuages_.empty())) {
         cout << "\nNuages:\n";
         for (size_t i = 0; i < nuages_.size(); i++) {
-            cout << "Nuage " << i << ", tex=" << nuages_[i].getTexture() << " : ";
-            for (auto& p : nuages_[i].getPoints())
-                cout << p->id << " ";
+            cout << "Nuage " << nuages_[i].getTexture() << " contient les points: ";
+
+
+            const auto& points = nuages_[i].getPoints();
+
+            for (size_t j = 0; j < points.size(); ++j) {
+              
+                if (j > 0) {
+                    cout << ", ";
+                }
+                cout << points[j]->getId();
+            }
+
             cout << "\n";
         }
     }
 }
 
-void Scene::afficherOrthese(const DisplayStrategy& strat) const
+void Scene::afficherOrthese(const Display& strat) const
 {
     strat.afficher(*this);
 }
@@ -77,25 +82,21 @@ void Scene::fusionnerPoints(const vector<int>& ids)
 
     string texture = (nuages_.empty() ? "o" :
                    (nuages_.size() == 1 ? "#" : "$"));
-
     Nuage n(texture);
 
     for (int id : ids) {
-        auto p = trouverPoint(id);
-        if (p) {
-            if (p->texture != ".") {
-                p->texture += texture;
-                p->ancienneTexture = texture.substr(1);
-            }
-            else {
-                p->texture = texture;
-                p->ancienneTexture = "." ;
-            }
+        // On cherche l'index pour pouvoir remplacer le pointeur dans le vecteur
+        for (auto& pRef : points_) {
+            if (pRef->getId() == id) {
+                // On décore le point existant
+                pRef = make_shared<DecorateurTexture>(pRef, texture);
 
-            n.ajouterPoint(p);
+                // On l'ajoute au nuage
+                n.ajouterPoint(pRef);
+                break;
+            }
         }
     }
-
     nuages_.push_back(n);
 }
 
@@ -103,8 +104,7 @@ void Scene::deplacerPoint(int id, int nx, int ny)
 {
     auto p = trouverPoint(id);
     if (p) {
-        p->x = nx;
-        p->y = ny;
+        p->setPosition(nx, ny);
     }
 }
 void Scene::creerLigne(vector<vector<char> > &grille) const{
@@ -112,9 +112,9 @@ void Scene::creerLigne(vector<vector<char> > &grille) const{
     for (int j = 0; j < surfaces_.size() ; j++) {
         auto points = surfaces_[j];
         for (int i = 0; i <points.size() - 1; i++) {
-            tracerLigne(grille, points[i]->x, points[i]->y, points[i+1]->x, points[i+1]->y);
+            tracerLigne(grille, points[i]->getX(), points[i]->getY(), points[i+1]->getX(), points[i+1]->getY());
         }
-        tracerLigne(grille, points[points.size() - 1]->x, points[points.size() - 1]->y, points[0]->x, points[0]->y);
+        tracerLigne(grille, points[points.size() - 1]->getX(), points[points.size() - 1]->getY(), points[0]->getX(), points[0]->getY());
     }
 
 }
@@ -123,26 +123,14 @@ void Scene::supprimerPoint(int id)
 {
     points_.erase(
         remove_if(points_.begin(), points_.end(),
-                  [id](auto& p){ return p->id == id; }),
+                  [id](auto& p){ return p->getId() == id; }), // getId()
         points_.end());
 
     for (auto& n : nuages_)
         n.enleverPoint(id);
 }
-void Scene::undoTexture(std::shared_ptr<Point>& p) {
-    enleverPointDansBonNuage(string(1,p->texture[0]), p->id) ;
-    p->texture = p->ancienneTexture;
 
-}
-void Scene::ecraserTexture(std::shared_ptr<Point>& p) {
-    for (auto
-        & c : p->texture) {
-        enleverPointDansBonNuage(string(1,c), p->id) ;
-    }
 
-    p->texture = ".";
-
-}
 
 void Scene::enleverPointDansBonNuage(
                               const std::string& textureRecherchee,
@@ -151,7 +139,7 @@ void Scene::enleverPointDansBonNuage(
     for (Nuage& nuage : nuages_) {
         if (nuage.getTexture() == textureRecherchee) {
             for (auto it = nuage.getPoints().begin(); it != nuage.getPoints().end(); it++) {
-                if ((*(it))->id == pointId) {
+                if ((*(it))->getId() == pointId) {
                     nuage.getPoints().erase(it);
                     return;
                 }
@@ -160,11 +148,13 @@ void Scene::enleverPointDansBonNuage(
         }
     }
 }
+void Scene::setStrategieCreationSurface(std::unique_ptr<SurfaceStrategy> strat) {
+    startegieCreation_ = std::move(strat);
+}
 
-
-void Scene::creerSurface(const SurfaceStrategy& strat)
+void Scene::creerSurface()
 {
-    surfaces_ = strat.creerSurfaces(nuages_);
+    surfaces_ = startegieCreation_->creerSurfaces(nuages_);
 }
 
 const vector<shared_ptr<Point>>& Scene::getPoints() const { return points_; }

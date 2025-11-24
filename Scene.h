@@ -14,7 +14,7 @@
 #include "Nuage.h"
 #include "affichage.h"
 
-class DisplayStrategy;
+class Display;
 class SurfaceStrategy;
 
 class Scene {
@@ -22,12 +22,12 @@ public:
     Scene(const std::string& input);
 
     void afficherListe() ;
-    void afficherOrthese(const DisplayStrategy& strat) const;
+    void afficherOrthese(const Display& strat) const;
 
     void fusionnerPoints(const std::vector<int>& ids);
     void deplacerPoint(int id, int nx, int ny);
     void supprimerPoint(int id);
-    void creerSurface(const SurfaceStrategy& strat);
+    void creerSurface();
 
     void creerLigne(std::vector<std::vector<char> > &grille) const;
 
@@ -38,7 +38,7 @@ public:
     const std::vector<std::vector<std::shared_ptr<Point>>>& getSurfaces() const;
     void undoTexture(std::shared_ptr<Point>& p)  ;
     void ecraserTexture(std::shared_ptr<Point>& p) ;
-
+    void setStrategieCreationSurface(std::unique_ptr<SurfaceStrategy> strat);
     void enleverPointDansBonNuage(
                               const std::string& textureRecherchee,
                               int pointId) ;
@@ -47,7 +47,7 @@ private:
     std::vector<std::shared_ptr<Point>> points_;
     std::vector<Nuage> nuages_;
     std::vector<std::vector<std::shared_ptr<Point>>> surfaces_;
-
+    std::unique_ptr<SurfaceStrategy> startegieCreation_;
     std::shared_ptr<Point> trouverPoint(int id);
     void creerPoint(const std::string& line);
 };
