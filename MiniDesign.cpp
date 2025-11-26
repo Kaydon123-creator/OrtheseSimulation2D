@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         getline(cin, args);
     }
     
-    // Voici des fonctions utiles pour réaliser le TP. 
+    // Voici des fonctions utiles pour réaliser le TP.
     // TODO: Il faudrait les placer dans des classes appropriées.
     Scene scene(args);
     DisplayTexture o1;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
                   << "a  - Afficher les points et les nuages\n"
                   << "o1 - Afficher l'orthèse avec les textures des points\n"
                   << "o2 - Afficher l'orthèse avec les IDs des points\n"
-                  << "f  - Fusionner des points dans un nuage (et appliquer texture)\n"
+                  << "f  - Fusionner des points/nuages dans un nuage (et appliquer texture)\n"
                   << "d  - Deplacer un point (ID)\n"
                   << "s  - Supprimer un point (ID)\n"
                   << "c1 - Créer les surfaces selon l'ordre des IDs\n"

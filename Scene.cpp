@@ -11,6 +11,18 @@
 
 using namespace std;
 
+void trouverIdsReels(shared_ptr<Point> p, vector<int>& listeIds) {
+    shared_ptr<Point> courant = p;
+
+    while(auto deco = dynamic_pointer_cast<PointDecorateur>(courant)) courant = deco->getBase();
+
+    if (auto n = dynamic_pointer_cast<Nuage>(courant)) {
+        for(auto& enfant : n->getEnfants()) trouverIdsReels(enfant, listeIds);
+    } else {
+        listeIds.push_back(p->getId());
+    }
+}
+
 Scene::Scene(const string& input)
 {
     creerPoint(input);
@@ -21,16 +33,29 @@ void Scene::creerPoint(const string& line)
     string token;
     istringstream iss(line);
     int id = 0;
-
     while (iss >> token) {
-        if (token.front() == '(' && token.back() == ')') {
-            token = token.substr(1, token.size() - 2);
-            replace(token.begin(), token.end(), ',', ' ');
-            istringstream ps(token);
+        bool formatCorrect = false;
+        if (token.size() >= 3 && token.front() == '(' && token.back() == ')') {
+
+            string content = token.substr(1, token.size() - 2);
+
+            replace(content.begin(), content.end(), ',', ' ');
+
+            istringstream ps(content);
             int x, y;
+
+
             if (ps >> x >> y) {
-               points_.push_back(make_shared<PointConcret>(id++, x, y));
+                char reste;
+                if (!(ps >> reste)) {
+                    points_.push_back(make_shared<PointConcret>(id++, x, y));
+                    formatCorrect = true;
+                }
             }
+        }
+
+        if (!formatCorrect) {
+            throw runtime_error("Erreur : Entrée invalide. Le format doit être (x,y) séparé par des espaces.");
         }
     }
 }
@@ -42,31 +67,27 @@ shared_ptr<Point> Scene::trouverPoint(int id)
     return nullptr;
 }
 
-void Scene::afficherListe()
-{
-    cout << "\nPoints:\n";
-    for (auto& p : points_) {
+void Scene::afficherListe() {
+    cout << "Liste:\n";
 
-        cout << "ID " << p->getId() << " : (" << p->getX() << "," << p->getY()
-             << "), textures=" <<"'" <<p->getTexture() <<"'" <<"\n";
-    }
-    if (!(nuages_.empty())) {
-        cout << "\nNuages:\n";
-        for (size_t i = 0; i < nuages_.size(); i++) {
-            cout << "Nuage " << nuages_[i].getTexture() << " contient les points: ";
+    for (const auto& p : points_) {
+        auto nuage = dynamic_pointer_cast<Nuage>(p);
 
+        if (nuage ) {
+            if (!(nuage->getEnfants().empty())) {
+                cout << nuage->getId() << ": Nuage '" << nuage->getTexture()
+                     << "' contient les éléments:";
 
-            const auto& points = nuages_[i].getPoints();
-
-            for (size_t j = 0; j < points.size(); ++j) {
-              
-                if (j > 0) {
-                    cout << ", ";
+                for (const auto& enfant : nuage->getEnfants()) {
+                    cout << " " << enfant->getId();
                 }
-                cout << points[j]->getId();
+                cout << "\n";
             }
-
-            cout << "\n";
+        }
+        else {
+            string texture = p->getTexture() == "." ? " " : p->getTexture();
+            cout << p->getId() << ": (" << p->getX() << "," << p->getY()
+                 << ") textures: '" << texture << "'\n";
         }
     }
 }
@@ -76,30 +97,69 @@ void Scene::afficherOrthese(const Display& strat) const
     strat.afficher(*this);
 }
 
-void Scene::fusionnerPoints(const vector<int>& ids)
-{
+
+void Scene::fusionnerPoints(const vector<int>& ids) {
     if (ids.empty()) return;
 
-    string texture = (nuages_.empty() ? "o" :
-                   (nuages_.size() == 1 ? "#" : "$"));
-    Nuage n(texture);
 
-    for (int id : ids) {
-        // On cherche l'index pour pouvoir remplacer le pointeur dans le vecteur
-        for (auto& pRef : points_) {
-            if (pRef->getId() == id) {
-                // On décore le point existant
-                pRef = make_shared<DecorateurTexture>(pRef, texture);
+    int maxId = 0;
+    int nbNuages = 0;
+    for (const auto& p : points_) {
+        if (p->getId() > maxId) maxId = p->getId();
+        if (dynamic_pointer_cast<Nuage>(p)) nbNuages++;
+    }
 
-                // On l'ajoute au nuage
-                n.ajouterPoint(pRef);
-                break;
+    string texture = string(1, "o#$%&"[nbNuages % 5]);
+    auto nouveauNuage = make_shared<Nuage>(maxId + 1, texture);
+    vector<int> idsATexturer;
+
+    for (auto& p : points_) {
+        bool estDansLaDemande = false;
+        for(int id : ids) {
+            if(p->getId() == id) {
+                estDansLaDemande = true;
+            }
+
+
+        }
+        if (estDansLaDemande) {
+
+            nouveauNuage->ajouterEnfant(p);
+            trouverIdsReels(p, idsATexturer);
+        }
+    }
+
+
+    for (auto& p : points_) {
+
+
+        bool aTexturer = false;
+        for(int id : idsATexturer) if(p->getId() == id) aTexturer = true;
+
+        if (aTexturer) {
+
+            shared_ptr<Point> check = p;
+
+            if (!dynamic_pointer_cast<Nuage>(check)) {
+
+
+                p = make_shared<DecorateurTexture>(p, texture);
+
+
+                for (auto& n : nuages_) {
+                    n->mettreAJourEnfant(p);
+                }
+
+                nouveauNuage->mettreAJourEnfant(p);
             }
         }
     }
-    nuages_.push_back(n);
-}
 
+    if (!nouveauNuage->getEnfants().empty()) {
+        points_.push_back(nouveauNuage);
+        nuages_.push_back(nouveauNuage);
+    }
+}
 void Scene::deplacerPoint(int id, int nx, int ny)
 {
     auto p = trouverPoint(id);
@@ -120,34 +180,45 @@ void Scene::creerLigne(vector<vector<char> > &grille) const{
 }
 
 void Scene::supprimerPoint(int id)
-{
+{   //TODO:  clean code, arranger fichier, effecture undo et redo
+    // 1. Suppression au premier niveau
+    //tcheck rapide pour voir si on essaye pas de supprimer un nuage entier
+    std::shared_ptr<Point> elementASupprimer = nullptr;
+    auto it = points_.begin();
+    while (it != points_.end()) {
+        if ((*it)->getId() == id) {
+            elementASupprimer = *it;
+            break;
+        }
+        ++it;
+    }
+
+    if (!elementASupprimer) {
+        return;
+    }
+
+    if (std::dynamic_pointer_cast<Nuage>(elementASupprimer)) {
+        std::cout << "Opération annulée car la suppression de nuages n'est pas autorisée." << std::endl;
+        return;
+    }
     points_.erase(
         remove_if(points_.begin(), points_.end(),
-                  [id](auto& p){ return p->getId() == id; }), // getId()
+            [id](shared_ptr<Point> p) { return p->getId() == id; }),
         points_.end());
 
-    for (auto& n : nuages_)
-        n.enleverPoint(id);
-}
-
-
-
-void Scene::enleverPointDansBonNuage(
-                              const std::string& textureRecherchee,
-                              int pointId)
-{
-    for (Nuage& nuage : nuages_) {
-        if (nuage.getTexture() == textureRecherchee) {
-            for (auto it = nuage.getPoints().begin(); it != nuage.getPoints().end(); it++) {
-                if ((*(it))->getId() == pointId) {
-                    nuage.getPoints().erase(it);
-                    return;
-                }
-            }
-            return;
+    // 2. Propagation aux nuages restants
+    for (auto& p : points_) {
+        // Comme les nuages ne sont plus décorés, le cast est direct
+        if (auto nuage = dynamic_pointer_cast<Nuage>(p)) {
+            nuage->supprimerEnfant(id);
         }
     }
+
 }
+
+
+
+
 void Scene::setStrategieCreationSurface(std::unique_ptr<SurfaceStrategy> strat) {
     startegieCreation_ = std::move(strat);
 }
@@ -158,5 +229,5 @@ void Scene::creerSurface()
 }
 
 const vector<shared_ptr<Point>>& Scene::getPoints() const { return points_; }
-const vector<Nuage>& Scene::getNuages() const { return nuages_; }
+const std::vector<std::shared_ptr<Nuage>>& Scene::getNuages() const { return nuages_; }
 const vector<vector<shared_ptr<Point>>>& Scene::getSurfaces() const { return surfaces_; }

@@ -33,11 +33,9 @@ public:
 
     const std::vector<std::shared_ptr<Point>>& getPoints() const;
 
-    const std::vector<Nuage>& getNuages() const;
+    const std::vector<std::shared_ptr<Nuage>>& getNuages() const;
 
     const std::vector<std::vector<std::shared_ptr<Point>>>& getSurfaces() const;
-    void undoTexture(std::shared_ptr<Point>& p)  ;
-    void ecraserTexture(std::shared_ptr<Point>& p) ;
     void setStrategieCreationSurface(std::unique_ptr<SurfaceStrategy> strat);
     void enleverPointDansBonNuage(
                               const std::string& textureRecherchee,
@@ -45,7 +43,7 @@ public:
 
 private:
     std::vector<std::shared_ptr<Point>> points_;
-    std::vector<Nuage> nuages_;
+    std::vector<std::shared_ptr<Nuage>> nuages_;
     std::vector<std::vector<std::shared_ptr<Point>>> surfaces_;
     std::unique_ptr<SurfaceStrategy> startegieCreation_;
     std::shared_ptr<Point> trouverPoint(int id);

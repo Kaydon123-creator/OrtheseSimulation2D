@@ -17,5 +17,5 @@ public:
     virtual ~SurfaceStrategy() = default;
 
     virtual std::vector<std::vector<std::shared_ptr<Point>>>
-    creerSurfaces(const std::vector<Nuage>& nuages) const = 0;
+    creerSurfaces(const std::vector<std::shared_ptr<Nuage>>& nuagess) const = 0;
 };
