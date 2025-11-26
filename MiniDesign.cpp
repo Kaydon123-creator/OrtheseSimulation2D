@@ -83,7 +83,10 @@ int main(int argc, char* argv[]) {
             istringstream iss(line);
             vector<int> ids; int v;
             while (iss >> v) ids.push_back(v);
-            scene.fusionnerPoints(ids);
+            scene.fusionnerElements(ids);
+        }
+        else {
+            cout << "Commands incorrect.\n";
         }
     }
 

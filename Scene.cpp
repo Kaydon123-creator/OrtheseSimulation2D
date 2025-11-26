@@ -7,12 +7,13 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <affichage.h>
 
 
 using namespace std;
 
-void trouverIdsReels(shared_ptr<Point> p, vector<int>& listeIds) {
-    shared_ptr<Point> courant = p;
+void trouverIdsReels(const shared_ptr<Element>& p, vector<int>& listeIds) {
+    shared_ptr<Element> courant = p;
 
     while(auto deco = dynamic_pointer_cast<PointDecorateur>(courant)) courant = deco->getBase();
 
@@ -48,7 +49,7 @@ void Scene::creerPoint(const string& line)
             if (ps >> x >> y) {
                 char reste;
                 if (!(ps >> reste)) {
-                    points_.push_back(make_shared<PointConcret>(id++, x, y));
+                    elements_.push_back(make_shared<PointConcret>(id++, x, y));
                     formatCorrect = true;
                 }
             }
@@ -60,17 +61,17 @@ void Scene::creerPoint(const string& line)
     }
 }
 
-shared_ptr<Point> Scene::trouverPoint(int id)
+shared_ptr<Element> Scene::trouverElement(int id)
 {
-    for (auto& p : points_)
+    for (auto& p : elements_)
         if (p->getId() == id) return p;
     return nullptr;
 }
 
-void Scene::afficherListe() {
+void Scene::afficherListe() const {
     cout << "Liste:\n";
 
-    for (const auto& p : points_) {
+    for (const auto& p : elements_) {
         auto nuage = dynamic_pointer_cast<Nuage>(p);
 
         if (nuage ) {
@@ -98,13 +99,13 @@ void Scene::afficherOrthese(const Display& strat) const
 }
 
 
-void Scene::fusionnerPoints(const vector<int>& ids) {
+void Scene::fusionnerElements(const vector<int>& ids) {
     if (ids.empty()) return;
 
 
     int maxId = 0;
     int nbNuages = 0;
-    for (const auto& p : points_) {
+    for (const auto& p : elements_) {
         if (p->getId() > maxId) maxId = p->getId();
         if (dynamic_pointer_cast<Nuage>(p)) nbNuages++;
     }
@@ -113,7 +114,7 @@ void Scene::fusionnerPoints(const vector<int>& ids) {
     auto nouveauNuage = make_shared<Nuage>(maxId + 1, texture);
     vector<int> idsATexturer;
 
-    for (auto& p : points_) {
+    for (auto& p : elements_) {
         bool estDansLaDemande = false;
         for(int id : ids) {
             if(p->getId() == id) {
@@ -130,7 +131,7 @@ void Scene::fusionnerPoints(const vector<int>& ids) {
     }
 
 
-    for (auto& p : points_) {
+    for (auto& p : elements_) {
 
 
         bool aTexturer = false;
@@ -138,7 +139,7 @@ void Scene::fusionnerPoints(const vector<int>& ids) {
 
         if (aTexturer) {
 
-            shared_ptr<Point> check = p;
+            shared_ptr<Element> check = p;
 
             if (!dynamic_pointer_cast<Nuage>(check)) {
 
@@ -156,13 +157,17 @@ void Scene::fusionnerPoints(const vector<int>& ids) {
     }
 
     if (!nouveauNuage->getEnfants().empty()) {
-        points_.push_back(nouveauNuage);
+        elements_.push_back(nouveauNuage);
         nuages_.push_back(nouveauNuage);
     }
 }
 void Scene::deplacerPoint(int id, int nx, int ny)
 {
-    auto p = trouverPoint(id);
+    if (detecterNuage(id)) {
+        std::cout << "Opération annulée car le deplacement de nuages n'est pas autorisée." << std::endl;
+        return;
+    }
+    auto p = trouverElement(id);
     if (p) {
         p->setPosition(nx, ny);
     }
@@ -178,36 +183,41 @@ void Scene::creerLigne(vector<vector<char> > &grille) const{
     }
 
 }
-
-void Scene::supprimerPoint(int id)
-{   //TODO:  clean code, arranger fichier, effecture undo et redo
-    // 1. Suppression au premier niveau
-    //tcheck rapide pour voir si on essaye pas de supprimer un nuage entier
-    std::shared_ptr<Point> elementASupprimer = nullptr;
-    auto it = points_.begin();
-    while (it != points_.end()) {
+bool Scene::detecterNuage(int id) {
+    std::shared_ptr<Element> elementASupprimer = nullptr;
+    auto it = elements_.begin();
+    while (it != elements_.end()) {
         if ((*it)->getId() == id) {
             elementASupprimer = *it;
             break;
         }
         ++it;
     }
-
     if (!elementASupprimer) {
-        return;
+        return true;
     }
-
     if (std::dynamic_pointer_cast<Nuage>(elementASupprimer)) {
+        return true;
+    }
+    return false;
+}
+
+void Scene::supprimerPoint(int id)
+{   //TODO:   effecture undo et redo
+    // 1. Suppression au premier niveau
+    //tcheck rapide pour voir si on essaye pas de supprimer un nuage entier
+    if (detecterNuage(id)) {
         std::cout << "Opération annulée car la suppression de nuages n'est pas autorisée." << std::endl;
         return;
     }
-    points_.erase(
-        remove_if(points_.begin(), points_.end(),
-            [id](shared_ptr<Point> p) { return p->getId() == id; }),
-        points_.end());
+
+    elements_.erase(
+        remove_if(elements_.begin(), elements_.end(),
+            [id](const shared_ptr<Element>& p) { return p->getId() == id; }),
+        elements_.end());
 
     // 2. Propagation aux nuages restants
-    for (auto& p : points_) {
+    for (auto& p : elements_) {
         // Comme les nuages ne sont plus décorés, le cast est direct
         if (auto nuage = dynamic_pointer_cast<Nuage>(p)) {
             nuage->supprimerEnfant(id);
@@ -228,6 +238,6 @@ void Scene::creerSurface()
     surfaces_ = startegieCreation_->creerSurfaces(nuages_);
 }
 
-const vector<shared_ptr<Point>>& Scene::getPoints() const { return points_; }
+const vector<shared_ptr<Element>>& Scene::getPoints() const { return elements_; }
 const std::vector<std::shared_ptr<Nuage>>& Scene::getNuages() const { return nuages_; }
-const vector<vector<shared_ptr<Point>>>& Scene::getSurfaces() const { return surfaces_; }
+const vector<vector<shared_ptr<Element>>>& Scene::getSurfaces() const { return surfaces_; }

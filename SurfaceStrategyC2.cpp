@@ -8,7 +8,7 @@
 
 using namespace std;
 
-static double dist(shared_ptr<Point> a, shared_ptr<Point> b) {
+static double dist(const shared_ptr<Element>&  a, const shared_ptr<Element>&  b) {
     double dx = a->getX() - b->getX();
     double dy = a->getY() - b->getY();
     return sqrt(dx*dx + dy*dy);
@@ -16,8 +16,8 @@ static double dist(shared_ptr<Point> a, shared_ptr<Point> b) {
 
 class SurfaceStrategyC2 : public SurfaceStrategy {
     private:
-        void extrairePoints(shared_ptr<Point> p, vector<shared_ptr<Point>>& res) const {
-            shared_ptr<Point> courant = p;
+        void static extrairePoints(const shared_ptr<Element>& p, vector<shared_ptr<Element>>& res) {
+            shared_ptr<Element> courant = p;
             while(auto deco = dynamic_pointer_cast<PointDecorateur>(courant)) {
                 courant = deco->getBase();
             }
@@ -32,18 +32,18 @@ class SurfaceStrategyC2 : public SurfaceStrategy {
         }
 
     public:
-        vector<vector<shared_ptr<Point>>> creerSurfaces(
+        vector<vector<shared_ptr<Element>>> creerSurfaces(
             const vector<shared_ptr<Nuage>>& nuages) const override
         {
-            vector<vector<shared_ptr<Point>>> surfaces;
+            vector<vector<shared_ptr<Element>>> surfaces;
 
             for (const auto& n : nuages) {
                 // 1. Récupérer tous les points (feuilles) de ce nuage spécifique
-                vector<shared_ptr<Point>> restants;
+                vector<shared_ptr<Element>> restants;
                 extrairePoints(n, restants);
 
                 if (restants.empty()) continue;
-                vector<shared_ptr<Point>> ordre;
+                vector<shared_ptr<Element>> ordre;
 
                 auto courant = restants[0];
                 ordre.push_back(courant);
@@ -51,7 +51,7 @@ class SurfaceStrategyC2 : public SurfaceStrategy {
 
                 while (!restants.empty()) {
                     auto it = min_element(restants.begin(), restants.end(),
-                        [&](shared_ptr<Point> p1, shared_ptr<Point> p2){
+                        [&](const shared_ptr<Element>& p1, const shared_ptr<Element>& p2){
                             return dist(courant, p1) < dist(courant, p2);
                         }
                     );

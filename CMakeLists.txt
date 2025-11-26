@@ -11,8 +11,8 @@ add_executable(test2400
         MiniDesign.cpp
         Scene.h
         Scene.cpp
-        Point.h
-        Point.cpp
+        Element.h
+        Element.cpp
         Nuage.h
         Nuage.cpp
         Display.h

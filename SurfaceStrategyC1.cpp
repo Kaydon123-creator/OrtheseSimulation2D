@@ -9,8 +9,8 @@ using namespace std;
 
 class SurfaceStrategyC1 : public SurfaceStrategy {
     private:
-        void extrairePoints(shared_ptr<Point> p, vector<shared_ptr<Point>>& res) const {
-            shared_ptr<Point> courant = p;
+        void static extrairePoints(const shared_ptr<Element>& p, vector<shared_ptr<Element>>& res)  {
+            shared_ptr<Element> courant = p;
             while(auto deco = dynamic_pointer_cast<PointDecorateur>(courant)) {
                 courant = deco->getBase();
             }
@@ -26,20 +26,20 @@ class SurfaceStrategyC1 : public SurfaceStrategy {
         }
 
     public:
-        vector<vector<shared_ptr<Point>>> creerSurfaces(
+        vector<vector<shared_ptr<Element>>> creerSurfaces(
             const vector<shared_ptr<Nuage>>& nuages) const override
         {
-            vector<vector<shared_ptr<Point>>> surfaces;
+            vector<vector<shared_ptr<Element>>> surfaces;
 
 
             for (const auto& n : nuages) {
-                vector<shared_ptr<Point>> pointsDuNuage;
+                vector<shared_ptr<Element>> pointsDuNuage;
                 extrairePoints(n, pointsDuNuage);
 
                 if (pointsDuNuage.empty()) continue;
 
                 sort(pointsDuNuage.begin(), pointsDuNuage.end(),
-                    [](const shared_ptr<Point>& a, const shared_ptr<Point>& b){
+                    [](const shared_ptr<Element>& a, const shared_ptr<Element>& b){
                         return a->getId() < b->getId();
                     });
 

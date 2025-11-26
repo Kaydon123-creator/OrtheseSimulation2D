@@ -10,6 +10,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "affichage.h"
 
 class Display {
     public:

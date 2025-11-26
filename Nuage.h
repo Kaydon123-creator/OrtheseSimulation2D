@@ -9,11 +9,11 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "Point.h"
+#include "Element.h"
 
-class Nuage : public Point {
+class Nuage : public Element {
 public:
-    Nuage(int id, std::string texture);
+    Nuage(const int& id, const std::string& texture);
 
     int getId() const override;
     int getX() const override;
@@ -21,14 +21,14 @@ public:
     void setPosition(int x, int y) override;
     std::string getTexture() const override;
 
-    void ajouterEnfant(std::shared_ptr<Point> p);
-    const std::vector<std::shared_ptr<Point>>& getEnfants() const;
-    std::vector<std::shared_ptr<Point>>& getEnfants();
+    void ajouterEnfant(const std::shared_ptr<Element>& p);
+    const std::vector<std::shared_ptr<Element>>& getEnfants() const;
+    std::vector<std::shared_ptr<Element>>& getEnfants();
     void supprimerEnfant(int id);
     void appliquerTextureEnfants(const std::string& texture) ;
-    void mettreAJourEnfant(std::shared_ptr<Point> pNouveau) ;
+    void mettreAJourEnfant(const std::shared_ptr<Element>& pNouveau) ;
 private:
     int id_;
     std::string texture_;
-    std::vector<std::shared_ptr<Point>> enfants_;
+    std::vector<std::shared_ptr<Element>> enfants_;
 };
