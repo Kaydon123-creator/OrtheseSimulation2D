@@ -1,13 +1,16 @@
-#include "affichage.h"
+//
+// Created by Kaydon and Johnny on 2025-11-19.
+//
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include "Scene.h"
+#include "Commande.h"
 // #include "DisplayStrategy.h"
 #include "DisplayID.cpp"
 #include "DisplayTexture.cpp"
-// #include "SurfaceStrategy.h"
 #include "SurfaceStrategyC1.cpp"
 #include "SurfaceStrategyC2.cpp"
 
@@ -34,6 +37,7 @@ int main(int argc, char* argv[]) {
     DisplayID o2;
     SurfaceStrategyC1 c1;
     SurfaceStrategyC2 c2;
+    Invocateur historique;
     
     // Ce sont différentes textures possibles. Seules les 2 premières sont utilisées dans les scénarios du TP.
     vector<char> texturesNuages = {'o', '#', '$'};
@@ -48,6 +52,8 @@ int main(int argc, char* argv[]) {
                   << "f  - Fusionner des points/nuages dans un nuage (et appliquer texture)\n"
                   << "d  - Deplacer un point (ID)\n"
                   << "s  - Supprimer un point (ID)\n"
+        << "u - Annuler la dernière commande (undo)\n"
+        << "r - Réappliquer la dernière commande annulée(redo)\n"
                   << "c1 - Créer les surfaces selon l'ordre des IDs\n"
                   << "c2 - Créer les surfaces selon la distance minimale\n"
                   << "q  - Quitter\n> ";
@@ -70,12 +76,14 @@ int main(int argc, char* argv[]) {
             cout << "ID : "; int id; cin >> id;
             cout << "x y : "; int x,y; cin >> x >> y;
             cin.ignore();
-            scene.deplacerPoint(id,x,y);
+            auto deplacement = make_shared<CommandeDeplacer>(scene, id, x, y);
+            historique.executerCommande(deplacement);
         }
         else if (cmd == "s") {
             cout << "ID : "; int id; cin >> id;
             cin.ignore();
-            scene.supprimerPoint(id);
+            auto suppression = make_shared<CommandeSupprimer>(scene, id);
+            historique.executerCommande(suppression);
         }
         else if (cmd == "f") {
             cout << "IDs (ex: 0 2 4): ";
@@ -84,6 +92,12 @@ int main(int argc, char* argv[]) {
             vector<int> ids; int v;
             while (iss >> v) ids.push_back(v);
             scene.fusionnerElements(ids);
+        }
+        else if (cmd == "u") {
+            historique.undo();
+        }
+        else if (cmd == "r") {
+            historique.redo();
         }
         else {
             cout << "Commands incorrect.\n";

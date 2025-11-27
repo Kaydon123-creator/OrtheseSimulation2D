@@ -21,4 +21,6 @@ add_executable(test2400
         SurfaceStrategy.h
         SurfaceStrategyC1.cpp
         SurfaceStrategyC2.cpp
+        Commande.h
+        Commande.cpp
 )

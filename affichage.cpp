@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
-#include <algorithm>
+
 
 using namespace std;
 
@@ -23,7 +23,6 @@ void tracerLigne(vector<vector<char>>& grille, int x0, int y0, int x1, int y1) {
         // Si la ligne est verticale ou diagonale 
         for (int i = 0; i <= lignes; ++i) {
             double t = (double)i / lignes;
-            // On fait une interpolation lineaire
             int x = round(x0 + t * (x1 - x0));
             int y = round(y0 + t * (y1 - y0));
             if (x >= 0 && x < LARGEUR && y >= 0 && y < HAUTEUR)

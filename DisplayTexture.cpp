@@ -1,8 +1,7 @@
 //
-// Created by Kaydon Mohamed on 2025-11-19.
+// Created by Kaydon and Johnny on 2025-11-19.
 //
 #include "Display.h"
-#include "affichage.h"
 #include <vector>
 
 

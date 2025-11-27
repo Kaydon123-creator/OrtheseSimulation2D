@@ -1,5 +1,5 @@
 //
-// Created by Kaydon Mohamed on 2025-11-19.
+// Created by Kaydon and Johnny on 2025-11-19.
 //
 #include "Scene.h"
 #include "Display.h"
@@ -22,6 +22,13 @@ void trouverIdsReels(const shared_ptr<Element>& p, vector<int>& listeIds) {
     } else {
         listeIds.push_back(p->getId());
     }
+}
+bool estTrieParId(const std::vector<std::shared_ptr<Element>>& elements) {
+    // std::is_sorted retourne true si la plage est triée selon le comparateur fourni
+    return is_sorted(elements.begin(), elements.end(),
+        [](const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b) {
+            return a->getId() < b->getId();
+        });
 }
 
 Scene::Scene(const string& input)
@@ -68,9 +75,12 @@ shared_ptr<Element> Scene::trouverElement(int id)
     return nullptr;
 }
 
-void Scene::afficherListe() const {
+void Scene::afficherListe() {
     cout << "Liste:\n";
-
+    if (!(estTrieParId(elements_))) {
+        sort(elements_.begin(), elements_.end(), [](const shared_ptr<Element>& a, const shared_ptr<Element>& b) {
+    return a->getId() < b->getId();});
+    }
     for (const auto& p : elements_) {
         auto nuage = dynamic_pointer_cast<Nuage>(p);
 
@@ -201,7 +211,9 @@ bool Scene::detecterNuage(int id) {
     }
     return false;
 }
-
+void Scene::ajouterElement(const std::shared_ptr<Element>& e) {
+    elements_.push_back(e);
+}
 void Scene::supprimerPoint(int id)
 {   //TODO:   effecture undo et redo
     // 1. Suppression au premier niveau

@@ -1,9 +1,8 @@
 //
-// Created by Kaydon Mohamed on 2025-11-19.
+// Created by Kaydon and Johnny on 2025-11-19.
 //
 #include "Display.h"
 #include <iostream>
-#include "affichage.h"
 #include <vector>
 
 using namespace std;
